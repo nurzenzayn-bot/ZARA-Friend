@@ -66,6 +66,11 @@ kotlin {
     }
 }
 
+ksp {
+    // Simpan skema Room untuk migrasi (lihat app/schemas).
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     // Core / Lifecycle
     implementation(libs.androidx.core.ktx)
@@ -81,6 +86,11 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation.compose)
+
+    // Data lokal — Room (Fase 2)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
     // Hilt (DI)
     implementation(libs.hilt.android)
