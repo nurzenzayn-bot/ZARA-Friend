@@ -28,6 +28,13 @@ interface MessageDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(message: MessageEntity)
 
+    /** Merge pesan dari pull sync (REPLACE per id, pesan bersifat immutable). */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(messages: List<MessageEntity>)
+
+    @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY createdAt ASC")
+    suspend fun getByConversation(conversationId: String): List<MessageEntity>
+
     @Query("UPDATE messages SET status = :status, errorMessage = :errorMessage WHERE id = :id")
     suspend fun updateStatus(id: String, status: String, errorMessage: String?)
 

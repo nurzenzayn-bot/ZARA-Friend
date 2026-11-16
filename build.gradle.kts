@@ -5,4 +5,6 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.hilt) apply false
+    // Fase 3: diterapkan di :app hanya bila google-services.json tersedia.
+    alias(libs.plugins.google.services) apply false
 }

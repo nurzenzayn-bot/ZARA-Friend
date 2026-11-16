@@ -32,14 +32,14 @@ jobs:
           echo "GEMINI_API_KEY=${GEMINI_API_KEY:-}" > local.properties
 
       # Fase 3+: google-services.json di-restore dari secret (base64) saat diperlukan.
-      - name: Restore google-services.json (jika ada)
+      - name: Restore google-services.json
         env:
           GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
         run: |
           if [ -n "$GOOGLE_SERVICES_JSON_B64" ]; then
             echo "$GOOGLE_SERVICES_JSON_B64" | base64 -d > app/google-services.json
           else
-            echo "google-services.json belum tersedia (wajar sebelum Fase 3) — dilewati."
+            echo "google-services.json tidak tersedia — plugin google-services dilewati (build lokal)."
           fi
 
       - name: Grant execute permission for gradlew

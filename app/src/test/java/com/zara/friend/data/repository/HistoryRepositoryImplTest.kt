@@ -2,7 +2,9 @@ package com.zara.friend.data.repository
 
 import app.cash.turbine.test
 import com.zara.friend.data.local.dao.ConversationDao
+import com.zara.friend.data.local.dao.SyncDeleteDao
 import com.zara.friend.data.local.entity.ConversationEntity
+import com.zara.friend.data.local.entity.SyncDeleteEntity
 import com.zara.friend.data.mapper.toDomain
 import com.zara.friend.data.mapper.toEntity
 import com.zara.friend.domain.model.Conversation
@@ -23,15 +25,18 @@ import org.junit.Test
 class HistoryRepositoryImplTest {
 
     private lateinit var dao: ConversationDao
+    private lateinit var syncDeleteDao: SyncDeleteDao
     private lateinit var repository: HistoryRepositoryImpl
 
     private var now = 1_000L
 
     @Before
     fun setUp() {
-        dao = mockk(relaxUnitFun = true)
+        dao = mockk(relaxed = true)
+        syncDeleteDao = mockk(relaxed = true)
         repository = HistoryRepositoryImpl(
             conversationDao = dao,
+            syncDeleteDao = syncDeleteDao,
             clock = { now },
         )
     }
@@ -39,6 +44,7 @@ class HistoryRepositoryImplTest {
     private fun entity(
         id: String = "c1",
         updatedAt: Long = 100L,
+        syncState: SyncState = SyncState.LOCAL_ONLY,
     ) = ConversationEntity(
         id = id,
         title = "Judul",
@@ -46,8 +52,8 @@ class HistoryRepositoryImplTest {
         createdAt = 1L,
         updatedAt = updatedAt,
         isArchived = false,
-        syncState = SyncState.LOCAL_ONLY.name,
-        lastSyncedAt = null,
+        syncState = syncState.name,
+        lastSyncedAt = if (syncState == SyncState.SYNCED) 50L else null,
     )
 
     // ---------- observeConversations ----------
@@ -133,6 +139,7 @@ class HistoryRepositoryImplTest {
     @Test
     fun `renameConversation trims title and touches updatedAt`() = runTest {
         now = 7_000L
+        coEvery { dao.getById("c1") } returns entity()
 
         val result = repository.renameConversation("c1", "  Ngobrol bareng Zara  ")
 
@@ -144,25 +151,106 @@ class HistoryRepositoryImplTest {
 
     @Test
     fun `setArchived delegates to dao`() = runTest {
+        coEvery { dao.getById("c1") } returns entity()
+
         assertTrue(repository.setArchived("c1", true).isSuccess)
         coVerify { dao.setArchived("c1", true, 1_000L) }
     }
 
     @Test
     fun `deleteConversation delegates to dao`() = runTest {
+        // LOCAL_ONLY (belum tersinkron) → tanpa tombstone.
+        coEvery { dao.getById("c1") } returns entity()
+
         assertTrue(repository.deleteConversation("c1").isSuccess)
+        coVerify { dao.deleteById("c1") }
+        coVerify(exactly = 0) { syncDeleteDao.insert(any()) }
+    }
+
+    @Test
+    fun `deleteConversation on SYNCED conversation records tombstone`() = runTest {
+        coEvery { dao.getById("c1") } returns entity(syncState = SyncState.SYNCED)
+
+        assertTrue(repository.deleteConversation("c1").isSuccess)
+
+        val slot = slot<SyncDeleteEntity>()
+        coVerify { syncDeleteDao.insert(capture(slot)) }
+        assertEquals("c1", slot.captured.conversationId)
+        assertEquals(1_000L, slot.captured.deletedAt)
         coVerify { dao.deleteById("c1") }
     }
 
     @Test
     fun `clearAll delegates to dao`() = runTest {
+        coEvery { dao.getAll() } returns emptyList()
+
         assertTrue(repository.clearAll().isSuccess)
+        coVerify { dao.deleteAll() }
+        coVerify(exactly = 0) { syncDeleteDao.insert(any()) }
+    }
+
+    @Test
+    fun `clearAll records tombstones only for SYNCED conversations`() = runTest {
+        coEvery { dao.getAll() } returns listOf(
+            entity("synced1", syncState = SyncState.SYNCED),
+            entity("local1", syncState = SyncState.LOCAL_ONLY),
+            entity("pending1", syncState = SyncState.PENDING),
+        )
+
+        assertTrue(repository.clearAll().isSuccess)
+
+        val tombstones = mutableListOf<SyncDeleteEntity>()
+        coVerify { syncDeleteDao.insert(capture(tombstones)) }
+        assertEquals(listOf("synced1"), tombstones.map { it.conversationId })
         coVerify { dao.deleteAll() }
     }
 
     @Test
+    fun `renameConversation marks SYNCED conversation PENDING`() = runTest {
+        now = 7_000L
+        coEvery { dao.getById("c1") } returns entity(syncState = SyncState.SYNCED)
+
+        val result = repository.renameConversation("c1", "  Ngobrol bareng Zara  ")
+
+        assertTrue(result.isSuccess)
+        coVerify { dao.updateTitle("c1", "Ngobrol bareng Zara", 7_000L) }
+        coVerify { dao.updateSyncState("c1", SyncState.PENDING.name) }
+    }
+
+    @Test
+    fun `renameConversation keeps LOCAL_ONLY state`() = runTest {
+        coEvery { dao.getById("c1") } returns entity(syncState = SyncState.LOCAL_ONLY)
+
+        assertTrue(repository.renameConversation("c1", "Judul baru").isSuccess)
+
+        coVerify(exactly = 0) { dao.updateSyncState(any(), any()) }
+    }
+
+    @Test
+    fun `setArchived marks SYNCED conversation PENDING`() = runTest {
+        coEvery { dao.getById("c1") } returns entity(syncState = SyncState.SYNCED)
+
+        assertTrue(repository.setArchived("c1", true).isSuccess)
+
+        coVerify { dao.setArchived("c1", true, 1_000L) }
+        coVerify { dao.updateSyncState("c1", SyncState.PENDING.name) }
+    }
+
+    @Test
+    fun `touchConversation marks SYNCED conversation PENDING`() = runTest {
+        now = 6_000L
+        coEvery { dao.getById("c1") } returns entity(syncState = SyncState.SYNCED)
+
+        assertTrue(repository.touchConversation("c1", autoTitle = "Halo").isSuccess)
+
+        coVerify { dao.touch("c1", 6_000L) }
+        coVerify { dao.updateSyncState("c1", SyncState.PENDING.name) }
+    }
+
+    @Test
     fun `deleteConversation returns failure when dao throws`() = runTest {
-        coEvery { dao.deleteById("c1") } throws IllegalStateException("fk")
+        coEvery { dao.getById("c1") } returns entity(syncState = SyncState.SYNCED)
+        coEvery { syncDeleteDao.insert(any()) } throws IllegalStateException("fk")
 
         val result = repository.deleteConversation("c1")
 

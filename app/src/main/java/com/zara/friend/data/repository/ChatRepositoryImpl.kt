@@ -1,10 +1,12 @@
 package com.zara.friend.data.repository
 
+import com.zara.friend.data.local.dao.ConversationDao
 import com.zara.friend.data.local.dao.MessageDao
 import com.zara.friend.data.mapper.toDomain
 import com.zara.friend.data.mapper.toEntity
 import com.zara.friend.domain.model.Message
 import com.zara.friend.domain.model.MessageStatus
+import com.zara.friend.domain.model.SyncState
 import com.zara.friend.domain.repository.ChatRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -13,9 +15,12 @@ import javax.inject.Inject
 /**
  * Implementasi lokal ChatRepository. Room = source of truth.
  * Error dibungkus Result agar UI/use case bisa tampilkan fallback (PLAN 3.3.5).
+ * Setiap perubahan pesan menandai percakapan PENDING agar SyncManager
+ * meng-push perubahan ke Firestore (PLAN 3.3.6).
  */
 class ChatRepositoryImpl @Inject constructor(
     private val messageDao: MessageDao,
+    private val conversationDao: ConversationDao,
 ) : ChatRepository {
 
     override fun observeMessages(conversationId: String): Flow<List<Message>> =
@@ -36,6 +41,7 @@ class ChatRepositoryImpl @Inject constructor(
 
     override suspend fun insertMessage(message: Message): Result<Unit> = runCatching {
         messageDao.insert(message.toEntity())
+        markPending(message.conversationId)
     }
 
     override suspend fun updateMessageStatus(
@@ -47,10 +53,17 @@ class ChatRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteMessage(id: String): Result<Unit> = runCatching {
+        val conversationId = messageDao.getById(id)?.conversationId
         messageDao.deleteById(id)
+        conversationId?.let { markPending(it) }
     }
 
     override suspend fun clearMessages(conversationId: String): Result<Unit> = runCatching {
         messageDao.deleteByConversation(conversationId)
+        markPending(conversationId)
+    }
+
+    private suspend fun markPending(conversationId: String) {
+        conversationDao.updateSyncState(conversationId, SyncState.PENDING.name)
     }
 }

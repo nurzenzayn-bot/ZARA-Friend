@@ -6,23 +6,27 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.zara.friend.data.local.dao.ConversationDao
 import com.zara.friend.data.local.dao.MessageDao
 import com.zara.friend.data.local.dao.SettingsDao
+import com.zara.friend.data.local.dao.SyncDeleteDao
 import com.zara.friend.data.local.entity.ConversationEntity
 import com.zara.friend.data.local.entity.MessageEntity
 import com.zara.friend.data.local.entity.SettingsEntity
+import com.zara.friend.data.local.entity.SyncDeleteEntity
 import com.zara.friend.domain.model.UserSettingsDefaults
 
 /**
  * Database Room = source of truth lokal.
  * Versi 1: conversations, messages, user_settings (sesuai PLAN.md 4.1).
- * Migrasi berikutnya ditambahkan di data/local/db/Migrations.kt.
+ * Versi 2: sync_deletes (tombstone penghapusan untuk sync, Fase 3).
+ * Migrasi ada di data/local/db/Migrations.kt.
  */
 @Database(
     entities = [
         ConversationEntity::class,
         MessageEntity::class,
         SettingsEntity::class,
+        SyncDeleteEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class ZaraDatabase : RoomDatabase() {
@@ -30,6 +34,7 @@ abstract class ZaraDatabase : RoomDatabase() {
     abstract fun conversationDao(): ConversationDao
     abstract fun messageDao(): MessageDao
     abstract fun settingsDao(): SettingsDao
+    abstract fun syncDeleteDao(): SyncDeleteDao
 
     /**
      * Pastikan baris user_settings (id=1) selalu ada — dibuat async

@@ -9,8 +9,12 @@ Gemini Developer API (Google AI Studio key). Lihat `../PLAN.md` untuk rencana le
 - [x] **Fase 1 — Fondasi & CI**: proyek Kotlin+Compose, Hilt, Navigation, theme,
       struktur paket, `libs.versions.toml`, `.gitignore`, template secrets,
       `android-ci.yml` (lint + unit test + assembleDebug).
-- [x] Fase 2 — Data Lokal & Domain Inti (Room + repository)
-- [ ] Fase 3 — Firebase Auth & Sync Riwayat
+- [x] **Fase 2 — Data Lokal & Domain Inti**: Room (conversations/messages/settings),
+      DAO, repository + mapper, model domain, unit test.
+- [x] **Fase 3 — Firebase Auth & Sync Riwayat**: anonymous Auth, Firestore data source,
+      `SyncManager` + `SyncWorker` (WorkManager, push/pull merge last-write-wins),
+      tombstone penghapusan, UI status sync di layar Pengaturan,
+      aturan keamanan di `firebase/firestore.rules`.
 - [ ] Fase 4 — Gemini Teks + Persona Zara
 - [ ] Fase 5 — UI Chat & Navigasi MVP
 - [ ] Fase 6 — Suara Gemini Native (turn-based)
@@ -26,8 +30,13 @@ Gemini Developer API (Google AI Studio key). Lihat `../PLAN.md` untuk rencana le
    ./gradlew assembleDebug
    ```
 4. CI (GitHub Actions) otomatis menjalankan `lintDebug testDebugUnitTest assembleDebug`
-   dan meng-upload APK debug sebagai artifact. `GEMINI_API_KEY` baru dibutuhkan sejak Fase 4;
-   `google-services.json` baru dibutuhkan sejak Fase 3 (di-restore dari secret base64).
+   dan meng-upload APK debug sebagai artifact. `GEMINI_API_KEY` dibutuhkan sejak Fase 4;
+   `google-services.json` di-restore dari secret `GOOGLE_SERVICES_JSON_B64` (base64).
+5. **Build tanpa `google-services.json`** tetap lulus — plugin google-services hanya
+   diterapkan bila file tersebut ada. Saat dijalankan di device, fitur sync akan
+   gagal terkontrol (status error di layar Pengaturan) sampai file dipasang.
+6. Aturan keamanan Firestore ada di `firebase/firestore.rules` (deploy via Firebase CLI
+   atau Console): `users/{uid}` hanya bisa diakses `request.auth.uid == uid`.
 
 ## Struktur
 

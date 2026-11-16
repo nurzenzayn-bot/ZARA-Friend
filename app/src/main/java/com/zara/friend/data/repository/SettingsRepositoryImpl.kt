@@ -24,7 +24,9 @@ class SettingsRepositoryImpl @Inject constructor(
         settingsDao.get().toDomainOrDefault()
 
     override suspend fun updateSettings(settings: UserSettings): Result<Unit> = runCatching {
-        settingsDao.upsert(settings.toEntity())
+        // anonymousUid tidak diatur dari UI — pertahankan nilai tersimpan.
+        val existing = settingsDao.get()
+        settingsDao.upsert(settings.toEntity().copy(anonymousUid = existing?.anonymousUid))
     }
 
     /** Simpan uid Firebase anonim (dipakai Fase 3). */

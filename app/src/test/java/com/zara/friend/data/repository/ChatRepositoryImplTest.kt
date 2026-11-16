@@ -1,6 +1,7 @@
 package com.zara.friend.data.repository
 
 import app.cash.turbine.test
+import com.zara.friend.data.local.dao.ConversationDao
 import com.zara.friend.data.local.dao.MessageDao
 import com.zara.friend.data.local.entity.MessageEntity
 import com.zara.friend.domain.model.ContentType
@@ -8,6 +9,7 @@ import com.zara.friend.domain.model.Message
 import com.zara.friend.domain.model.MessagePart
 import com.zara.friend.domain.model.MessageRole
 import com.zara.friend.domain.model.MessageStatus
+import com.zara.friend.domain.model.SyncState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -23,12 +25,14 @@ import org.junit.Test
 class ChatRepositoryImplTest {
 
     private lateinit var dao: MessageDao
+    private lateinit var conversationDao: ConversationDao
     private lateinit var repository: ChatRepositoryImpl
 
     @Before
     fun setUp() {
-        dao = mockk(relaxUnitFun = true)
-        repository = ChatRepositoryImpl(dao)
+        dao = mockk(relaxed = true)
+        conversationDao = mockk(relaxed = true)
+        repository = ChatRepositoryImpl(dao, conversationDao)
     }
 
     private fun entity(
@@ -111,7 +115,7 @@ class ChatRepositoryImplTest {
     // ---------- insertMessage ----------
 
     @Test
-    fun `insertMessage inserts mapped entity and returns success`() = runTest {
+    fun `insertMessage inserts mapped entity and marks conversation PENDING`() = runTest {
         val message = Message(
             id = "m1",
             conversationId = "c1",
@@ -134,6 +138,8 @@ class ChatRepositoryImplTest {
                 },
             )
         }
+        // PLAN 3.3.6: pesan baru → sync_state PENDING agar SyncManager meng-push.
+        coVerify { conversationDao.updateSyncState("c1", SyncState.PENDING.name) }
     }
 
     @Test
@@ -172,13 +178,35 @@ class ChatRepositoryImplTest {
 
     @Test
     fun `deleteMessage calls dao deleteById`() = runTest {
-        assertTrue(repository.deleteMessage("m1").isSuccess)
+        coEvery { dao.getById("m1") } returns null
+
+        val result = repository.deleteMessage("m1")
+        assertTrue(result.isSuccess)
         coVerify { dao.deleteById("m1") }
     }
 
     @Test
-    fun `clearMessages calls dao deleteByConversation`() = runTest {
+    fun `deleteMessage marks conversation PENDING when message found`() = runTest {
+        coEvery { dao.getById("m1") } returns entity("m1", "x", 1L)
+
+        assertTrue(repository.deleteMessage("m1").isSuccess)
+
+        coVerify { conversationDao.updateSyncState("c1", SyncState.PENDING.name) }
+    }
+
+    @Test
+    fun `deleteMessage skips PENDING marking when message not found`() = runTest {
+        coEvery { dao.getById("m404") } returns null
+
+        assertTrue(repository.deleteMessage("m404").isSuccess)
+
+        coVerify(exactly = 0) { conversationDao.updateSyncState(any(), any()) }
+    }
+
+    @Test
+    fun `clearMessages calls dao deleteByConversation and marks PENDING`() = runTest {
         assertTrue(repository.clearMessages("c1").isSuccess)
         coVerify { dao.deleteByConversation("c1") }
+        coVerify { conversationDao.updateSyncState("c1", SyncState.PENDING.name) }
     }
 }

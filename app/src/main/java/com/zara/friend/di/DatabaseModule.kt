@@ -5,6 +5,8 @@ import androidx.room.Room
 import com.zara.friend.data.local.dao.ConversationDao
 import com.zara.friend.data.local.dao.MessageDao
 import com.zara.friend.data.local.dao.SettingsDao
+import com.zara.friend.data.local.dao.SyncDeleteDao
+import com.zara.friend.data.local.db.ZaraDatabaseMigrations.ALL
 import com.zara.friend.data.local.db.ZaraDatabase
 import dagger.Module
 import dagger.Provides
@@ -28,7 +30,7 @@ object DatabaseModule {
         ZaraDatabase.NAME,
     )
         .addCallback(ZaraDatabase.DefaultSettingsCallback())
-        .fallbackToDestructiveMigration() // versi 1: belum ada migrasi, aman di dev
+        .addMigrations(*ALL)
         .build()
 
     @Provides
@@ -39,4 +41,7 @@ object DatabaseModule {
 
     @Provides
     fun provideSettingsDao(db: ZaraDatabase): SettingsDao = db.settingsDao()
+
+    @Provides
+    fun provideSyncDeleteDao(db: ZaraDatabase): SyncDeleteDao = db.syncDeleteDao()
 }

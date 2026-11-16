@@ -27,6 +27,8 @@ firebaseBom = "33.7.0"   # Fase 3: Firebase BoM (Auth + Firestore)
 workManager = "2.10.0"   # Fase 3: WorkManager untuk sync
 androidxHilt = "1.2.0"   # Fase 3: hilt-work
 
+googleServices = "4.4.2" # Fase 3: plugin com.google.gms.google-services
+
 # Test & kualitas
 junit = "4.13.2"
 turbine = "1.2.0"
@@ -61,6 +63,17 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 
 # Async
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
+
+# Firebase (Fase 3) — versi via BoM
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+
+# WorkManager (Fase 3)
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }
+androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidxHilt" }
+androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHilt" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -74,3 +87,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

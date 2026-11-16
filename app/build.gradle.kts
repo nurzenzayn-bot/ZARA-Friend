@@ -99,6 +99,17 @@ dependencies {
 
     // Async
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.play.services)
+
+    // Firebase (Fase 3) — Auth anonim + Firestore untuk sync riwayat
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+
+    // WorkManager (Fase 3) — sinkronisasi berkala/on-demand
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     // Tooling
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -108,4 +119,11 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation(libs.mockk)
+}
+
+// Plugin google-services hanya diterapkan bila konfigurasi Firebase tersedia,
+// agar build lokal tanpa google-services.json tetap lulus (CI menyuntik dari
+// secret GOOGLE_SERVICES_JSON_B64 — lihat .github/workflows/android-ci.yml).
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }

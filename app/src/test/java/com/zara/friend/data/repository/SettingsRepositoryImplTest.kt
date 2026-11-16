@@ -8,6 +8,7 @@ import com.zara.friend.data.mapper.toEntity
 import com.zara.friend.domain.model.PersonaMode
 import com.zara.friend.domain.model.ThemeMode
 import com.zara.friend.domain.model.UserSettings
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -26,7 +27,7 @@ class SettingsRepositoryImplTest {
 
     @Before
     fun setUp() {
-        dao = mockk(relaxUnitFun = true)
+        dao = mockk(relaxed = true)
         repository = SettingsRepositoryImpl(dao)
     }
 
@@ -91,6 +92,8 @@ class SettingsRepositoryImplTest {
 
     @Test
     fun `updateSettings upserts single row entity`() = runTest {
+        coEvery { dao.get() } returns null
+
         val settings = UserSettings(
             themeMode = ThemeMode.DARK,
             personaMode = PersonaMode.GUE_LO,
@@ -108,6 +111,26 @@ class SettingsRepositoryImplTest {
         assertEquals(PersonaMode.GUE_LO.name, slot.captured.personaMode)
         assertEquals(false, slot.captured.voiceAutoPlay)
         assertEquals(true, slot.captured.syncEnabled)
+    }
+
+    @Test
+    fun `updateSettings preserves cached anonymousUid (Fase 3)`() = runTest {
+        io.mockk.coEvery { dao.get() } returns SettingsEntity(
+            id = 1,
+            themeMode = ThemeMode.SYSTEM.name,
+            personaMode = PersonaMode.AKU_KAMU.name,
+            voiceAutoPlay = true,
+            syncEnabled = true,
+            anonymousUid = "uid-42",
+        )
+        val slot = slot<SettingsEntity>()
+
+        val result = repository.updateSettings(UserSettings(syncEnabled = false))
+
+        assertTrue(result.isSuccess)
+        coVerify { dao.upsert(capture(slot)) }
+        assertEquals("uid-42", slot.captured.anonymousUid)
+        assertEquals(false, slot.captured.syncEnabled)
     }
 
     @Test

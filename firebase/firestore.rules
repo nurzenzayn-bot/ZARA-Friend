@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// Aturan keamanan dasar Firestore (PLAN 5.2):
+// users/{uid} hanya boleh diakses oleh pemilik uid (Auth anonim).
+// Deploy: firebase deploy --only firestore:rules (atau lewat Firebase Console).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

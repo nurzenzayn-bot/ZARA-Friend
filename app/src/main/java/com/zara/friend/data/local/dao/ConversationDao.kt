@@ -28,6 +28,23 @@ interface ConversationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(conversation: ConversationEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(conversations: List<ConversationEntity>)
+
+    @Query("SELECT * FROM conversations ORDER BY updatedAt ASC")
+    suspend fun getAll(): List<ConversationEntity>
+
+    /** Percakapan yang belum tersinkron — target push (PLAN 3.5). */
+    @Query("SELECT * FROM conversations WHERE syncState IN ('LOCAL_ONLY', 'PENDING') ORDER BY updatedAt ASC")
+    suspend fun getPendingSync(): List<ConversationEntity>
+
+    /** Hasil push/pull: status + waktu sync terakhir per percakapan. */
+    @Query("UPDATE conversations SET syncState = :syncState, lastSyncedAt = :lastSyncedAt WHERE id = :id")
+    suspend fun updateSyncInfo(id: String, syncState: String, lastSyncedAt: Long?)
+
+    @Query("UPDATE conversations SET syncState = :syncState WHERE id = :id")
+    suspend fun updateSyncState(id: String, syncState: String)
+
     /** Rename + update updatedAt sekaligus. */
     @Query("UPDATE conversations SET title = :title, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updateTitle(id: String, title: String, updatedAt: Long)

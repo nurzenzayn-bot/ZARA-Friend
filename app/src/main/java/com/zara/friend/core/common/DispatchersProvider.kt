@@ -2,6 +2,7 @@ package com.zara.friend.core.common
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import javax.inject.Inject
 
 /**
  * Abstraksi dispatcher agar unit test bisa menyuntik dispatcher test.
@@ -13,7 +14,7 @@ interface DispatchersProvider {
     val main: CoroutineDispatcher
 }
 
-class DefaultDispatchersProvider : DispatchersProvider {
+class DefaultDispatchersProvider @Inject constructor() : DispatchersProvider {
     override val io: CoroutineDispatcher = Dispatchers.IO
     override val default: CoroutineDispatcher = Dispatchers.Default
     override val main: CoroutineDispatcher = Dispatchers.Main

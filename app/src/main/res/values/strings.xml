@@ -10,4 +10,14 @@
     <string name="nav_history">Riwayat</string>
     <string name="nav_settings">Pengaturan</string>
     <string name="placeholder_coming_soon">Fitur ini menyusul di fase berikutnya</string>
+
+    <!-- Status sinkronisasi (Fase 3) -->
+    <string name="sync_section_title">Sinkronisasi</string>
+    <string name="sync_enabled_label">Sinkronisasi riwayat aktif</string>
+    <string name="sync_now">Sinkron sekarang</string>
+    <string name="sync_status_idle">Belum pernah sinkron</string>
+    <string name="sync_status_syncing">Menyinkronkan…</string>
+    <string name="sync_status_skipped">Sinkronisasi nonaktif di pengaturan</string>
+    <string name="sync_status_success">Sinkron: %1$d di-push, %2$d di-pull</string>
+    <string name="sync_status_error">Sinkronisasi gagal: %1$s</string>
 </resources>

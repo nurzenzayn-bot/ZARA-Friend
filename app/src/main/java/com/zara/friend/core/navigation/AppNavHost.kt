@@ -34,7 +34,7 @@ fun AppNavHost() {
         }
 
         composable(Routes.SETTINGS) {
-            com.zara.friend.feature.settings.SettingsPlaceholderScreen()
+            com.zara.friend.feature.settings.SettingsScreen()
         }
     }
 }
