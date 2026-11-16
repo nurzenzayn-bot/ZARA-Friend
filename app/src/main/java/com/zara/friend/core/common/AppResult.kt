@@ -23,7 +23,7 @@ sealed interface AppResult<out T> {
     fun getOrDefault(default: @UnsafeVariance T): T = getOrNull() ?: default
 
     /** Transformasi nilai bila sukses. */
-    inline fun <R> map(transform: (T) -> R): AppResult<R> = when (this) {
+    fun <R> map(transform: (T) -> R): AppResult<R> = when (this) {
         is Success -> Success(transform(data))
         is Error -> this
     }
