@@ -97,7 +97,7 @@ class HistoryRepositoryImplTest {
     @Test
     fun `touchConversation replaces default title with first message text truncated`() = runTest {
         now = 5_000L
-        coEvery { dao.getById("c1") } returns entity()
+        coEvery { dao.getById("c1") } returns entity().copy(title = HistoryRepositoryImpl.DEFAULT_TITLE)
         coEvery { dao.updateTitle(any(), any(), any()) } returns Unit
 
         val longText = "H".repeat(100)
