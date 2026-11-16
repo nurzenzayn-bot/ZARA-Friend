@@ -9,7 +9,7 @@ Gemini Developer API (Google AI Studio key). Lihat `../PLAN.md` untuk rencana le
 - [x] **Fase 1 — Fondasi & CI**: proyek Kotlin+Compose, Hilt, Navigation, theme,
       struktur paket, `libs.versions.toml`, `.gitignore`, template secrets,
       `android-ci.yml` (lint + unit test + assembleDebug).
-- [ ] Fase 2 — Data Lokal & Domain Inti (Room + repository)
+- [x] Fase 2 — Data Lokal & Domain Inti (Room + repository)
 - [ ] Fase 3 — Firebase Auth & Sync Riwayat
 - [ ] Fase 4 — Gemini Teks + Persona Zara
 - [ ] Fase 5 — UI Chat & Navigasi MVP
