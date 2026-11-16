@@ -1,0 +1,9 @@
+# Template konfigurasi lokal (tidak di-commit).
+# Salin file ini menjadi local.properties lalu isi nilai aslinya.
+
+# Lokasi Android SDK (sesuaikan dengan mesinmu)
+sdk.dir=C\:\\Users\\<user>\\AppData\\Local\\Android\\Sdk
+
+# API key Google AI Studio untuk Gemini Developer API.
+# Dapatkan di https://aistudio.google.com/ — JANGAN commit key asli.
+GEMINI_API_KEY=MASUKKAN_API_KEY_DI_SINI

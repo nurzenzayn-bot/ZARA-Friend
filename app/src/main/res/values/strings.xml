@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">ZARA Friend</string>
+
+    <!-- Home -->
+    <string name="home_greeting">Halo, aku Zara 👋</string>
+    <string name="home_subtitle">Mau cerita apa hari ini?</string>
+    <string name="home_start_chat">Mulai ngobrol</string>
+
+    <!-- Placeholder navigasi -->
+    <string name="nav_history">Riwayat</string>
+    <string name="nav_settings">Pengaturan</string>
+    <string name="placeholder_coming_soon">Fitur ini menyusul di fase berikutnya</string>
+</resources>

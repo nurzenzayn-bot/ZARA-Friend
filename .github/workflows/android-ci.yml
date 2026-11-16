@@ -1,0 +1,66 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      # Fase 1: GEMINI_API_KEY opsional (build tetap lulus tanpa key).
+      # Fase 4+: isi secret GEMINI_API_KEY di repo agar fitur AI teruji.
+      - name: Prepare local.properties (GEMINI_API_KEY)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY:-}" > local.properties
+
+      # Fase 3+: google-services.json di-restore dari secret (base64) saat diperlukan.
+      - name: Restore google-services.json (jika ada)
+        env:
+          GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON_B64" ]; then
+            echo "$GOOGLE_SERVICES_JSON_B64" | base64 -d > app/google-services.json
+          else
+            echo "google-services.json belum tersedia (wajar sebelum Fase 3) — dilewati."
+          fi
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Lint, unit test, build debug APK
+        run: ./gradlew lintDebug testDebugUnitTest assembleDebug --stacktrace
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: zara-friend-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload lint & test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zara-friend-reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: ignore
