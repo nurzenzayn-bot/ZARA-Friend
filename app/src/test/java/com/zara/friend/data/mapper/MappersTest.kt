@@ -7,6 +7,7 @@ import com.zara.friend.domain.model.MessageRole
 import com.zara.friend.domain.model.MessageStatus
 import com.zara.friend.domain.model.PersonaMode
 import com.zara.friend.domain.model.SyncState
+import com.zara.friend.domain.model.ThemeMode
 import com.zara.friend.data.local.entity.ConversationEntity
 import com.zara.friend.data.local.entity.MessageEntity
 import com.zara.friend.data.local.entity.SettingsEntity
