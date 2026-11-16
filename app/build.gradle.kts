@@ -106,6 +106,9 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 
+    // Gemini (Fase 4) — Google Generative AI (teks; audio di Fase 6)
+    implementation(libs.generativeai)
+
     // WorkManager (Fase 3) — sinkronisasi berkala/on-demand
     implementation(libs.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)

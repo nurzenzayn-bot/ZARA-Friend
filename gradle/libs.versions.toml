@@ -19,9 +19,8 @@ hiltNavigationCompose = "1.2.0"
 
 # Async
 coroutines = "1.9.0"
-
-# Disiapkan untuk fase berikutnya (jangan dipakai di modul sebelum fasenya)
 room = "2.6.1"           # Fase 2: Room
+generativeai = "0.9.0"   # Fase 4: Google Generative AI (Gemini)
 datastore = "1.1.1"      # Fase 2: DataStore (opsional)
 firebaseBom = "33.7.0"   # Fase 3: Firebase BoM (Auth + Firestore)
 workManager = "2.10.0"   # Fase 3: WorkManager untuk sync
@@ -64,6 +63,9 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 # Async
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
+
+# Gemini (Fase 4)
+generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
 
 # Firebase (Fase 3) — versi via BoM
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }

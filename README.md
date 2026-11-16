@@ -15,7 +15,9 @@ Gemini Developer API (Google AI Studio key). Lihat `../PLAN.md` untuk rencana le
       `SyncManager` + `SyncWorker` (WorkManager, push/pull merge last-write-wins),
       tombstone penghapusan, UI status sync di layar Pengaturan,
       aturan keamanan di `firebase/firestore.rules`.
-- [ ] Fase 4 — Gemini Teks + Persona Zara
+- [x] **Fase 4 — Gemini Teks + Persona Zara**: `GeminiApiService` (API key), `PromptBuilder`
+      (persona Zara, sliding window konteks), `SendTextMessageUseCase` + `ObserveConversationUseCase`,
+      penyimpanan riwayat end-to-end, error/fallback. Unit test PromptBuilder & use case.
 - [ ] Fase 5 — UI Chat & Navigasi MVP
 - [ ] Fase 6 — Suara Gemini Native (turn-based)
 - [ ] Fase 7 — Hardening, Keamanan & Rilis
